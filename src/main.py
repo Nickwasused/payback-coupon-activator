@@ -40,7 +40,7 @@ async def run_activation() -> None:
     logger.info("Starting coupon activation")
 
     try:
-        async with create_browser_context(create_browser()) as ctx:
+        async with create_browser() as browser, create_browser_context(browser) as ctx:
             page = await ctx.new_page()
             result = await activate_all_coupons(page)
             duration = (datetime.now() - start).total_seconds()
@@ -65,7 +65,7 @@ async def run_keepalive() -> None:
     await asyncio.sleep(delay)
 
     try:
-        async with create_browser_context(create_browser()) as ctx:
+        async with create_browser() as browser, create_browser_context(browser) as ctx:
             page = await ctx.new_page()
             await keep_session_alive(page)
             app_state.last_keepalive_time = datetime.now().isoformat()
