@@ -1,4 +1,7 @@
 # Payback Coupon Activator
+
+Das ist ein Fork von https://github.com/fynnsh/payback-coupon-activator
+
 > Automatisierte Aktivierung aller verfügbaren Payback-Coupons per Playwright-Browser-Automation, gesteuert über ein Web-Dashboard.
 
 ![Dashboard](docs/dashboard.png)
@@ -199,17 +202,3 @@ docker compose up -d
 | `src/web/static/index.html` | Single-File Dashboard (dunkles Theme, Vanilla JS) |
 | `docker-compose.yml` | Service-Definition, Volumes, Ressourcen, Security |
 | `Dockerfile` | Playwright-Base, non-root, `CMD ["python", "-m", "src.main"]` |
-
-## Roadmap / Bekannte Limitationen
-
-- Selektor `button.coupon__activate-button.not-activated` ist hartkodiert — bricht bei Payback-Frontend-Änderungen
-- Keine Auth/Schutz für `/api/trigger` und `/api/cookies` — Dashboard sollte **niemals** öffentlich erreichbar sein (nur LAN / VPN / Reverse-Proxy mit Auth)
-- Cookies werden im Klartext in `data/cookies.json` gespeichert
-- Keine Tests vorhanden
-- Keine CI/CD-Pipeline (nur `Dockerfile` + lokales `docker compose`)
-- Initialer Run startet sofort beim Container-Start, sofern Cookies vorhanden
-
-## Lizenz / Autor
-
-- Lizenz: [MIT](LICENSE)
-- Repository: `ssh://git@ssh.github.com:443/fynnsh/payback-coupon-activator.git`
