@@ -2,6 +2,11 @@
 .env
 cookies.json
 
+bin/
+include/
+lib/
+lib64/
+
 # Logs
 logs/
 *.log
@@ -43,3 +48,5 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+pyvenv.cfg
+lib64
