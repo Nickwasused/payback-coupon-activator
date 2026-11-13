@@ -37,14 +37,14 @@ async def activate_all_coupons(page: Page) -> ActivationResult:
     await page.wait_for_timeout(3000)
 
     # Find buttons
-    selector = 'button.coupon__activate-button.not-activated'
-    result.total_found = await page.locator(selector).count()
+    # result.total_found = await page.locator(selector).count()
+    result.total_found = await page.locator("button", has_text="jetzt aktivieren").count()
     logger.info(f"Found {result.total_found} coupons")
 
     # Activate
     batch_count = 0
     while True:
-        btn = page.locator(selector).first
+        btn = page.locator("button", has_text="jetzt aktivieren").first
         try:
             if not await btn.is_visible(timeout=500):
                 break
