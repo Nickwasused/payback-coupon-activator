@@ -2,7 +2,6 @@ import json
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 from loguru import logger
 
@@ -12,11 +11,11 @@ class AppState:
     cookie_count: int = 0
     cookie_domains: list[str] = field(default_factory=list)
     cookies_expired: bool = False
-    cookies_loaded_at: Optional[str] = None
-    last_activation_time: Optional[str] = None
-    last_activation_result: Optional[dict] = None
-    next_scheduled_run: Optional[str] = None
-    last_keepalive_time: Optional[str] = None
+    cookies_loaded_at: str | None = None
+    last_activation_time: str | None = None
+    last_activation_result: dict | None = None
+    next_scheduled_run: str | None = None
+    last_keepalive_time: str | None = None
     last_keepalive_ok: bool = False
     is_running: bool = False
 

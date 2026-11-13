@@ -9,8 +9,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from loguru import logger
 
-from .config import Config
 from .browser import create_browser, create_browser_context
+from .config import Config
 from .coupon_activator import activate_all_coupons, keep_session_alive
 from .web.app import create_app
 from .web.state import app_state
@@ -40,19 +40,18 @@ async def run_activation() -> None:
     logger.info("Starting coupon activation")
 
     try:
-        async with create_browser() as browser:
-            async with create_browser_context(browser) as ctx:
-                page = await ctx.new_page()
-                result = await activate_all_coupons(page)
-                duration = (datetime.now() - start).total_seconds()
-                logger.info(f"Done: {result.activated} activated ({duration:.1f}s)")
-                logger.info("=" * 40)
-                app_state.last_activation_time = datetime.now().isoformat()
-                app_state.last_activation_result = {
-                    "total_found": result.total_found,
-                    "activated": result.activated,
-                    "failed": result.failed,
-                }
+        async with create_browser_context(create_browser()) as ctx:
+            page = await ctx.new_page()
+            result = await activate_all_coupons(page)
+            duration = (datetime.now() - start).total_seconds()
+            logger.info(f"Done: {result.activated} activated ({duration:.1f}s)")
+            logger.info("=" * 40)
+            app_state.last_activation_time = datetime.now().isoformat()
+            app_state.last_activation_result = {
+                "total_found": result.total_found,
+                "activated": result.activated,
+                "failed": result.failed,
+            }
     except Exception as e:
         logger.exception(f"Error: {e}")
         app_state.last_activation_time = datetime.now().isoformat()
@@ -66,12 +65,11 @@ async def run_keepalive() -> None:
     await asyncio.sleep(delay)
 
     try:
-        async with create_browser() as browser:
-            async with create_browser_context(browser) as ctx:
-                page = await ctx.new_page()
-                await keep_session_alive(page)
-                app_state.last_keepalive_time = datetime.now().isoformat()
-                app_state.last_keepalive_ok = True
+        async with create_browser_context(create_browser()) as ctx:
+            page = await ctx.new_page()
+            await keep_session_alive(page)
+            app_state.last_keepalive_time = datetime.now().isoformat()
+            app_state.last_keepalive_ok = True
     except Exception as e:
         logger.warning(f"Keepalive error: {e}")
         app_state.last_keepalive_time = datetime.now().isoformat()

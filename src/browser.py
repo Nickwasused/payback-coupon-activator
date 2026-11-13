@@ -1,14 +1,15 @@
 import json
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, List, Dict, Any
+from typing import Any
 
-from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 from loguru import logger
+from playwright.async_api import Browser, BrowserContext, Page, async_playwright
 
 from .config import Config
 
 
-def load_cookies() -> List[Dict[str, Any]]:
+def load_cookies() -> list[dict[str, Any]]:
     """Load cookies from file and convert to Playwright format."""
     if not Config.COOKIES_FILE.exists():
         logger.warning(f"Cookies file not found: {Config.COOKIES_FILE}")
@@ -53,8 +54,8 @@ async def create_browser() -> AsyncGenerator[Browser, None]:
         finally:
             try:
                 await browser.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(e)
 
 
 @asynccontextmanager

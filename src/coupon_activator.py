@@ -1,8 +1,8 @@
 import asyncio
 from dataclasses import dataclass
 
-from playwright.async_api import Page
 from loguru import logger
+from playwright.async_api import Page
 
 from .config import Config
 
@@ -21,8 +21,8 @@ async def _dismiss_cookie_banner(page: Page) -> None:
         if await btn.is_visible(timeout=2000):
             await btn.click()
             await page.wait_for_timeout(1000)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(e)
 
 
 async def activate_all_coupons(page: Page) -> ActivationResult:
