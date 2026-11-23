@@ -11,7 +11,7 @@ from loguru import logger
 
 from .browser import create_browser, create_browser_context
 from .config import Config
-from .coupon_activator import activate_all_coupons, keep_session_alive
+from .coupon_activator import ActivationResult, activate_batch, keep_session_alive
 from .web.app import create_app
 from .web.state import app_state
 
@@ -40,18 +40,43 @@ async def run_activation() -> None:
     logger.info("Starting coupon activation")
 
     try:
-        async with create_browser() as browser, create_browser_context(browser) as ctx:
-            page = await ctx.new_page()
-            result = await activate_all_coupons(page)
-            duration = (datetime.now() - start).total_seconds()
-            logger.info(f"Done: {result.activated} activated ({duration:.1f}s)")
-            logger.info("=" * 40)
-            app_state.last_activation_time = datetime.now().isoformat()
-            app_state.last_activation_result = {
-                "total_found": result.total_found,
-                "activated": result.activated,
-                "failed": result.failed,
-            }
+        result = ActivationResult()
+        first = True
+        while True:
+            # Browser only lives for one batch — closed during rate-limit pause
+            async with create_browser() as browser, create_browser_context(browser) as ctx:
+                page = await ctx.new_page()
+                batch = await activate_batch(
+                    page,
+                    Config.RATE_LIMIT_BATCH_SIZE,
+                    offset=result.activated,
+                    total=None if first else result.total_found,
+                )
+            if first:
+                result.total_found = batch.total_found
+                first = False
+            result.activated += batch.activated
+            result.failed += batch.failed
+
+            if not batch.limit_reached:
+                break
+            logger.info(
+                f"Rate limit reached ({batch.activated} coupons). Browser closed, "
+                f"pausing for {Config.RATE_LIMIT_PAUSE_HOURS}h..."
+            )
+            await asyncio.sleep(Config.RATE_LIMIT_PAUSE_HOURS * 3600)
+            logger.info("Resuming...")
+
+        duration = (datetime.now() - start).total_seconds()
+        logger.info(f"Result: {result.activated} activated, {result.failed} failed (of {result.total_found} found)")
+        logger.info(f"Done: {result.activated} activated ({duration:.1f}s)")
+        logger.info("=" * 40)
+        app_state.last_activation_time = datetime.now().isoformat()
+        app_state.last_activation_result = {
+            "total_found": result.total_found,
+            "activated": result.activated,
+            "failed": result.failed,
+        }
     except Exception as e:
         logger.exception(f"Error: {e}")
         app_state.last_activation_time = datetime.now().isoformat()
