@@ -96,9 +96,11 @@ async def main() -> None:
     if job and job.next_run_time:
         app_state.next_scheduled_run = job.next_run_time.isoformat()
 
-    # Run first activation if cookies exist
+    # Run first activation in background so the web server starts immediately
+    # (activation can pause for hours due to rate limiting)
     if Config.COOKIES_FILE.exists():
-        await run_activation()
+        app_state.is_running = True
+        asyncio.create_task(run_activation(), name="initial-activation")
     else:
         logger.info("No cookies.json found — waiting for upload via Web UI")
 
